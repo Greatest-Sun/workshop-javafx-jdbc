@@ -1,5 +1,6 @@
 package gui;
 
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
 import javafx.collections.FXCollections;
@@ -27,7 +28,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class DepartmentListController implements Initializable {
+public class DepartmentListController implements Initializable, DataChangeListener {
     private DepartmentService service;
     private ObservableList<Department> observableList;
 
@@ -45,7 +46,8 @@ public class DepartmentListController implements Initializable {
 
     @FXML
     public void onBtNewAction(ActionEvent event) {
-        createDialogForm(Utils.currentStage(event),"/gui/DepartmentForm.fxml");
+        Department dp = new Department();
+        createDialogForm(dp, Utils.currentStage(event),"/gui/DepartmentForm.fxml");
     }
 
     public void updateTableView() {
@@ -68,10 +70,15 @@ public class DepartmentListController implements Initializable {
         tableViewDepartment.prefHeightProperty().bind(sg.heightProperty());
     }
 
-    private void createDialogForm(Stage parentStage, String absoluteName) {
+    private void createDialogForm(Department obj, Stage parentStage, String absoluteName) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
             Pane pane = loader.load();
+            DepartmentFormController controller = loader.getController();
+            controller.setDepartment(obj);
+            controller.setDepartmentService(new DepartmentService());
+            controller.subscribeDCL(this);
+            controller.updateFormData();
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Enter department data");
             dialogStage.setScene(new Scene(pane));
@@ -87,5 +94,10 @@ public class DepartmentListController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeNodes();
+    }
+
+    @Override
+    public void onDataChanged() {
+        updateTableView();
     }
 }
